@@ -9,7 +9,8 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  simple_deployment_pipeline:
+  build_and_test:
+    if: ${{ !contains(github.event.commits[0].message, '#skip') }}
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
@@ -34,12 +35,16 @@ jobs:
       - name: Run e2e tests
         run: npm run test:e2e
 
+  deploy_to_server:
+    needs: [build_and_test]
+    runs-on: ubuntu-20.04
+    steps:
       - name: Trigger deployment
         if: ${{ github.event_name == 'push' }}
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
 
   tag_release:
-    needs: [simple_deployment_pipeline]
+    needs: [deploy_to_server, build_and_test]
     runs-on: ubuntu-20.04
     if: ${{ github.event_name == 'push' }}
     steps:

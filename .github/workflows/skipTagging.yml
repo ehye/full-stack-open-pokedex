@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  SKIP_COMMIT: ${{ contains(github.event.commits[0].message, '#skip') }}
+
 jobs:
   a_test_job:
     runs-on: ubuntu-20.04
@@ -22,8 +25,5 @@ jobs:
         env:
           COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
         run: echo "$COMMIT_MESSAGES"
-
-      - name: test
-        env:
-          SKIP_COMMIT: ${{ contains(github.event.commits.*.message, '#skip') }}
+      - name: skip_commit
         run: echo "skip this commit ? $SKIP_COMMIT"
